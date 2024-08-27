@@ -4,10 +4,11 @@ const express     = require('express');
 const bodyParser  = require('body-parser');
 const cors        = require('cors');
 
-const apiRoutes         = require('./routes/api.js');
+// const apiRoutes         = require('./routes/api.js'); ◘ ◘ THIS NEEDED TO BE CHANGE IN ORDER FOR api.js TO EXPORT threadSchema AND Thread
+const { apiRoutes }         = require('./routes/api.js'); // < < THIS IS THE CHANGE ◘ ◘ 
 const fccTestingRoutes  = require('./routes/fcctesting.js');
 const runner            = require('./test-runner');
-
+const helmet = require('helmet') // ◘ MY CODE ◘
 const app = express();
 
 app.use('/public', express.static(process.cwd() + '/public'));
@@ -16,6 +17,27 @@ app.use(cors({origin: '*'})); //For FCC testing purposes only
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// ↓ ↓ ↓ ↓ ↓ SECURITY FEATURES ↓ ↓ ↓ ↓ ↓ 
+app.use(helmet({
+  noCache: {},
+  contentSecurityPolicy:{
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'unsafe-inline'"], //LIFESAVER
+      scriptSrc: ["'self'", "localhost", "'unsafe-inline'", "code.jquery.com", "https://code.jquery.com/jquery-2.2.1.min.js"], //LIFESAVER
+      // scriptSrc: ["'self'"],
+      // styleSrc: ["'self'"], // Allow styles from the same origin and trusted.com
+      imgSrc: ["'self'"], // Allow images from the same origin and trusted.com
+      connectSrc: ["'self'"], // Allow AJAX, WebSocket, etc. connections to the same origin
+      fontSrc: ["'self'"]
+    }
+  },
+  referrerPolicy: {
+    policy: "same-origin"
+  }
+}))
+
+// ↑ ↑ ↑ ↑ ↑ SECURITY FEATURES ↑ ↑ ↑ ↑ ↑ 
 
 //Sample front-end
 app.route('/b/:board/')
